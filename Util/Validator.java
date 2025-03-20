@@ -20,7 +20,7 @@ public class Validator
 
     public static boolean validateCommand(String command)
     {
-        String[] parts = command.split(" ");
+        var parts = command.split(" ");
 
         if (parts.length == 0)
         {
@@ -29,7 +29,7 @@ public class Validator
             return false;
         }
 
-        String commandType = parts[0].toUpperCase();
+        var commandType = parts[0].toUpperCase();
 
         // Validate based on command type
         switch (commandType)
@@ -48,7 +48,7 @@ public class Validator
                     return false;
                 }
 
-                String createType = parts[1].toUpperCase();
+                var createType = parts[1].toUpperCase();
 
                 switch (createType)
                 {
@@ -75,7 +75,7 @@ public class Validator
                     return false;
                 }
 
-                String removeType = parts[1].toUpperCase();
+                var removeType = parts[1].toUpperCase();
 
                 switch (removeType)
                 {
@@ -105,7 +105,7 @@ public class Validator
                     return false;
                 }
 
-                String listType = parts[1].toUpperCase();
+                var listType = parts[1].toUpperCase();
 
                 switch (listType)
                 {
@@ -135,7 +135,7 @@ public class Validator
                     return false;
                 }
 
-                String updateType = parts[1].toUpperCase();
+                var updateType = parts[1].toUpperCase();
 
                 switch (updateType)
                 {
@@ -160,7 +160,7 @@ public class Validator
 
     public static boolean validateLoginCommand(String command)
     {
-        String[] parts = command.split(" ");
+        var parts = command.split(" ");
 
         if (parts.length != 3)
         {
@@ -179,7 +179,7 @@ public class Validator
 
     public static boolean validateCreateUserCommand(String command)
     {
-        String[] parts = command.split(" ");
+       var parts = command.split(" ");
 
         if (parts.length != 4)
         {
@@ -247,11 +247,15 @@ public class Validator
         }
 
         // The last four parameters are: check-in time, check-out time, username, password
-        int lastIndex = parts.length - 1;
-        String password = parts[lastIndex];
-        String username = parts[lastIndex - 1];
-        String checkOutTime = parts[lastIndex - 2];
-        String checkInTime = parts[lastIndex - 3];
+        var lastIndex = parts.length - 1;
+
+        var password = parts[lastIndex];
+
+        var username = parts[lastIndex - 1];
+
+        var checkOutTime = parts[lastIndex - 2];
+
+        var checkInTime = parts[lastIndex - 3];
 
         if (!checkDate(checkInTime, "Check-in time") || !checkDate(checkOutTime, "Check-out time"))
         {
@@ -572,8 +576,8 @@ public class Validator
     {
         try
         {
-            LocalDateTime checkIn = LocalDateTime.parse(checkInStr, inputDateFormatter);
-            LocalDateTime checkOut = LocalDateTime.parse(checkOutStr, inputDateFormatter);
+            var checkIn = LocalDateTime.parse(checkInStr, inputDateFormatter);
+            var checkOut = LocalDateTime.parse(checkOutStr, inputDateFormatter);
 
             if (checkIn.isAfter(checkOut) || checkIn.isEqual(checkOut))
             {

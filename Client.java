@@ -43,7 +43,7 @@ public class Client
         displayWelcome();
 
         // Initial login
-        boolean loggedIn = false;
+        var loggedIn = false;
 
         while (!loggedIn)
         {
@@ -137,16 +137,16 @@ public class Client
         this.password = parts[2];
 
         try (
-                Socket client = new Socket(HOST, PORT);
+                var client = new Socket(HOST, PORT);
 
-                PrintWriter serverWriter = new PrintWriter(client.getOutputStream(), true);
+                var serverWriter = new PrintWriter(client.getOutputStream(), true);
 
-                BufferedReader serverReader = new BufferedReader(new InputStreamReader(client.getInputStream()))
+                var serverReader = new BufferedReader(new InputStreamReader(client.getInputStream()))
         )
         {
             serverWriter.println(command);
 
-            String response = serverReader.readLine();
+            var response = serverReader.readLine();
 
             System.out.println(response);
 
@@ -173,16 +173,16 @@ public class Client
     private void processCreateUserCommand(String command)
     {
         try (
-                Socket client = new Socket(HOST, PORT);
+                var client = new Socket(HOST, PORT);
 
-                PrintWriter serverWriter = new PrintWriter(client.getOutputStream(), true);
+                var serverWriter = new PrintWriter(client.getOutputStream(), true);
 
-                BufferedReader serverReader = new BufferedReader(new InputStreamReader(client.getInputStream()))
+                var serverReader = new BufferedReader(new InputStreamReader(client.getInputStream()))
         )
         {
             serverWriter.println(command);
 
-            String response = serverReader.readLine();
+            var response = serverReader.readLine();
 
             System.out.println(response);
         }
@@ -216,7 +216,7 @@ public class Client
 
             System.out.print(">");
 
-            String command = sc.nextLine().trim();
+            var command = sc.nextLine().trim();
 
             if(!command.startsWith("HELP") && !command.startsWith("EXIT"))
             {
@@ -297,7 +297,7 @@ public class Client
 
             System.out.print(">");
 
-            String command = sc.nextLine().trim();
+            var command = sc.nextLine().trim();
 
             if(!command.startsWith("CREATE USER") && !command.startsWith("HELP") && !command.startsWith("EXIT"))
             {
@@ -426,7 +426,7 @@ public class Client
 
     private void processCommand(String command)
     {
-        String uppercaseCommand = command.toUpperCase();
+        var uppercaseCommand = command.toUpperCase();
 
         // Format dates if needed
         if (uppercaseCommand.startsWith("CHECK ") || uppercaseCommand.startsWith("BOOK "))
@@ -435,19 +435,19 @@ public class Client
         }
 
         try (
-                Socket client = new Socket(HOST, PORT);
+                var client = new Socket(HOST, PORT);
 
-                PrintWriter serverWriter = new PrintWriter(client.getOutputStream(), true);
+                var serverWriter = new PrintWriter(client.getOutputStream(), true);
 
-                BufferedReader serverReader = new BufferedReader(new InputStreamReader(client.getInputStream()))
+                var serverReader = new BufferedReader(new InputStreamReader(client.getInputStream()))
         )
         {
             serverWriter.println(command);
 
             // Read all lines of the response
-            StringBuilder response = new StringBuilder();
+            var response = new StringBuilder();
 
-            String line;
+            var line = "";
 
             while ((line = serverReader.readLine()) != null)
             {
@@ -469,7 +469,7 @@ public class Client
 
     private String formatDateTimeInCommand(String command)
     {
-        String[] parts = command.split(" ");
+        var parts = command.split(" ");
 
         // Format dates in CHECK command
         if (command.toUpperCase().startsWith("CHECK "))
@@ -493,7 +493,7 @@ public class Client
         {
             if (parts.length >= 5)
             {
-                int lastIndex = parts.length - 1;
+                var lastIndex = parts.length - 1;
 
                 try
                 {
@@ -513,6 +513,6 @@ public class Client
 
     public static void main(String[] args)
     {
-        Client client = new Client();
+        var client = new Client();
     }
 }

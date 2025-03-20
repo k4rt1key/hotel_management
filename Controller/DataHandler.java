@@ -53,11 +53,11 @@ public class DataHandler
         users.add(new User("user", "user", false));
 
         // Create sample hotels
-        Hotel hotel1 = new Hotel("Grand Plaza");
+        var hotel1 = new Hotel("Grand Plaza");
 
-        Hotel hotel2 = new Hotel("Ocean View Resort");
+        var hotel2 = new Hotel("Ocean View Resort");
 
-        Hotel hotel3 = new Hotel("Mountain Retreat");
+        var hotel3 = new Hotel("Mountain Retreat");
 
         hotels.add(hotel1);
 

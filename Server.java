@@ -62,7 +62,7 @@ public class Server
             while (running)
             {
                 // Accept client
-                Socket client = server.accept();
+                var client = server.accept();
 
                 // Start client handler
                 System.out.println("Client connected with address " + client.getInetAddress());

@@ -31,7 +31,7 @@ public class BookingHandler
             if (booking.getRoomId() == roomId)
             {
                 // Check if there's an overlap in booking periods
-                boolean overlapExists =
+                var overlapExists =
                         (checkInTime.isBefore(booking.getCheckOutTime()) || checkInTime.isEqual(booking.getCheckOutTime())) &&
                                 (checkOutTime.isAfter(booking.getCheckInTime()) || checkOutTime.isEqual(booking.getCheckInTime()));
 
@@ -53,7 +53,7 @@ public class BookingHandler
             return -1; // Room not available
         }
 
-        Booking booking = new Booking(roomId, userId, checkInTime, checkOutTime, transactionId);
+        var booking = new Booking(roomId, userId, checkInTime, checkOutTime, transactionId);
 
         dataHandler.getBookings().add(booking);
 
