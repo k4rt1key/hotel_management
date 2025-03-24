@@ -281,8 +281,6 @@ public class Client
 
             System.out.println("- REMOVE ROOM <ROOMID>");
 
-            System.out.println("- LIST ROOMS ");
-
             System.out.println("--- Booking Management ---");
 
             System.out.println("- LIST BOOKINGS ");

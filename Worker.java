@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import src.Controller.BookingHandler;
@@ -891,7 +892,20 @@ public class Worker implements Runnable
             response.append("  Hotel ID: ").append(hotel.getId())
                     .append(" - Name: ").append(hotel.getName())
                     .append("\n");
+
+            for (var room : dataHandler.getRooms().values())
+            {
+                if (room.getHotel() == hotel.getId())
+                {
+                    response.append("          Room ID: ").append(room.getId())
+                            .append(" - Number: ").append(room.getRoomNumber())
+                            .append(" - Type: ").append(room.getType())
+                            .append(" - Price: $").append(room.getPrice())
+                            .append("\n");
+                }
+            }
         }
+
 
         return response.toString();
     }
@@ -933,7 +947,8 @@ public class Worker implements Runnable
         }
 
         var response = new StringBuilder("200 📅 All Bookings:\n");
-
+        
+       
         for (Booking booking : bookings)
         {
             response.append("Transaction #").append(booking.getTransactionId())
