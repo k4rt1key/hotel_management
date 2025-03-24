@@ -10,11 +10,11 @@ public class Tester
 {
     private static final String SERVER_ADDRESS = "localhost";
 
-    private static final int SERVER_PORT = 8080; // Update this to match your server port
+    private static final int SERVER_PORT = 8081; // Update this to match your server port
 
     private static final int ROOMS = 18; // Number of rooms
 
-    private static final int REQUESTS_PER_ROOM = 100; // Requests per room
+    private static final int REQUESTS_PER_ROOM = 700; // Requests per room
 
     private static final int TOTAL_THREADS = ROOMS * REQUESTS_PER_ROOM; // 1000 total threads
 
@@ -35,8 +35,6 @@ public class Tester
 
     public static void main(String[] args)
     {
-        System.out.println("Starting concurrent booking test with " + TOTAL_THREADS +
-                " threads (" + ROOMS + " rooms × " + REQUESTS_PER_ROOM + " requests per room)");
 
         var executor = Executors.newFixedThreadPool(TOTAL_THREADS);
 
@@ -62,7 +60,7 @@ public class Tester
 
                         var bookingResponse = sendCommand(bookingCommand);
 
-                        System.out.println("Room " + room + ", Request " + requestNum +
+                        System.out.println("***Room " + room + ", Request " + requestNum +
                                 " response: " + bookingResponse);
 
                         if (bookingResponse.startsWith("200"))
@@ -70,7 +68,8 @@ public class Tester
                             successfulBookings.incrementAndGet();
 
                             roomSuccessCount[room].incrementAndGet();
-                        } else
+                        } 
+                        else
                         {
                             failedBookings.incrementAndGet();
                         }
@@ -96,31 +95,31 @@ public class Tester
 
             var endTime = System.currentTimeMillis();
 
-            System.out.println("\n=== Test Results ===");
+            System.out.println("***\n=== Test Results ===");
 
-            System.out.println("Total threads: " + TOTAL_THREADS);
+            System.out.println("***Total threads: " + TOTAL_THREADS);
 
-            System.out.println("Successful bookings: " + successfulBookings.get());
+            System.out.println("***Successful bookings: " + successfulBookings.get());
 
-            System.out.println("Failed bookings: " + failedBookings.get());
+            System.out.println("***Failed bookings: " + failedBookings.get());
 
             // Print success rate per room
-            System.out.println("\n=== Room Success Rates ===");
+            System.out.println("***\n=== Room Success Rates ===");
 
             for (var i = 1; i <= ROOMS; i++)
             {
-                System.out.println("Room " + i + ": " + roomSuccessCount[i].get() +
+                System.out.println("***Room " + i + ": " + roomSuccessCount[i].get() +
                         "/" + REQUESTS_PER_ROOM + " successful (" +
                         (roomSuccessCount[i].get() * 100.0 / REQUESTS_PER_ROOM) + "%)");
             }
 
-            System.out.println("\nTotal time: " + (endTime - startTime) + "ms");
+            System.out.println("***\nTotal time: " + (endTime - startTime) + "ms");
 
-            System.out.println("Average response time per request: " +
-                    ((endTime - startTime) / (float)TOTAL_THREADS) + "ms");
+            System.out.println("***Average response time per request: " +
+                   ((endTime - startTime) / (float)TOTAL_THREADS) + "ms");
 
-            System.out.println("Requests per second: " +
-                    (1000.0 * TOTAL_THREADS / (endTime - startTime)));
+            System.out.println("***Requests per second: " +
+                   (1000.0 * TOTAL_THREADS / (endTime - startTime)));
 
         }
         catch (InterruptedException e)
@@ -156,6 +155,8 @@ public class Tester
             {
                 response.append(line).append("\n");
             }
+
+            in.close();
 
             return response.toString().trim();
         }

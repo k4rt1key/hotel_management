@@ -73,13 +73,13 @@ public class Booking
         return checkOutTime;
     }
 
-    public LocalDateTime getBookedTime()
-    {
-        return bookedTime;
-    }
-
     public int getTransactionId()
     {
         return transactionId;
+    }
+
+    public LocalDateTime getBookedTime()
+    {
+        return bookedTime;
     }
 }

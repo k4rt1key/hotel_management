@@ -23,24 +23,6 @@ public class User
         this.isAdmin = isAdmin;
     }
 
-    // Constructor for backward compatibility
-    public User(int id, String username)
-    {
-        this.id = id;
-
-        this.username = username;
-
-        this.password = "default";
-
-        this.isAdmin = false;
-
-        // Update counter if this ID is larger
-        if (id > userCounter)
-        {
-            userCounter = id;
-        }
-    }
-
     // Getters
     public int getId()
     {

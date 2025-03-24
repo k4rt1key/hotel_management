@@ -18,7 +18,7 @@ public class Client
 {
     private final String HOST = "localhost";
 
-    private final int PORT = 8080;
+    private final int PORT = 8081;
 
     private String username;
 
@@ -259,7 +259,7 @@ public class Client
 
             System.out.println("- CREATE USER <USERNAME> <USERPASS>");
 
-            System.out.println("- REMOVE USER <USERID>");
+            System.out.println("- REMOVE USER <USERNAME>");
 
             System.out.println("- LIST USERS");
 

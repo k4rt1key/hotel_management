@@ -1,6 +1,7 @@
 package src;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -8,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import src.Controller.BookingHandler;
 import src.Controller.DataHandler;
 import src.Model.Booking;
@@ -64,12 +67,24 @@ public class Worker implements Runnable
             var response = processRequest(request);
 
             clientWriter.println(response);
+            clientWriter.flush();
 
-            client.close();
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+        finally {
+            try
+            {
+                client.close();
+                clientReader.close();
+                clientWriter.close();
+            }
+            catch (IOException e)
+            {
+                System.out.println("Error closing socket");
+            }
         }
     }
 
@@ -91,7 +106,7 @@ public class Worker implements Runnable
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -155,15 +170,13 @@ public class Worker implements Runnable
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-
             return "500 ❌ Syntax Error: " + e.getMessage();
         }
     }
 
     private String handleLogin(String username, String password)
     {
-        var user = findUser(username);
+        User user = dataHandler.getUsers().get(username);
 
         if (user == null)
         {
@@ -189,7 +202,7 @@ public class Worker implements Runnable
 
         var newUser = new User(username, password, false);
 
-        dataHandler.getUsers().add(newUser);
+        dataHandler.getUsers().put(newUser.getUsername(), newUser);
 
         return "200 ✅ User created successfully: " + username + " (ID: " + newUser.getId() + ")";
     }
@@ -218,7 +231,7 @@ public class Worker implements Runnable
             // Find all available rooms
             var availableRooms = new ArrayList<Room>();
 
-            for (var room : dataHandler.getRooms())
+            for (var room : dataHandler.getRooms().values())
             {
                 if (bookingHandler.isRoomAvailable(room.getId(), checkInTime, checkOutTime))
                 {
@@ -237,7 +250,7 @@ public class Worker implements Runnable
             {
                 var hotelName = "Unknown";
 
-                for (var hotel : dataHandler.getHotels())
+                for (var hotel : dataHandler.getHotels().values())
                 {
                     if (hotel.getId() == room.getHotel())
                     {
@@ -308,12 +321,20 @@ public class Worker implements Runnable
                 // Verify room exists
                 var room = findRoomById(roomId);
 
-                room.getLock().lock();
+                if(!room.getLock().tryLock(1000, TimeUnit.MILLISECONDS))
+                {
+                    anyFail = true;
+                }
             }
 
-                // Start from index 1 (after "BOOK") and stop before the dates and credentials
-                for (var i = 1; i < parts.length - 4; i++)
-                {
+            if (anyFail)
+            {
+                return "400 ❌ No rooms were successfully booked";
+            }
+
+            // Start from index 1 (after "BOOK") and stop before the dates and credentials
+            for (var i = 1; i < parts.length - 4; i++)
+            {
                     try {
                         var roomId = Integer.parseInt(parts[i]);
 
@@ -352,8 +373,8 @@ public class Worker implements Runnable
                     }
                 }
 
-                for (var i = 1; i < parts.length - 4; i++)
-                {
+            for (var i = 1; i < parts.length - 4; i++)
+            {
                     var roomId = Integer.parseInt(parts[i]);
 
                     // Verify room exists
@@ -372,23 +393,6 @@ public class Worker implements Runnable
         catch (Exception e)
         {
             return "500 ❌ Booking error: " + e.getMessage();
-        }
-    }
-
-    private boolean releaseLocks(ArrayList<Room> lockedRooms){
-        boolean success = true;
-        for(Room lockedRoom : lockedRooms){
-            try {
-                lockedRoom.getLock().unlock();
-            } catch (Exception e){
-                success = false;
-            }
-        }
-
-        if(success){
-            return true;
-        } else {
-            return releaseLocks(lockedRooms);
         }
     }
 
@@ -425,8 +429,7 @@ public class Worker implements Runnable
             }
 
             // Find hotel
-            var hotelExists = dataHandler.getHotels().stream()
-                    .anyMatch(hotel -> hotel.getId() == hotelId);
+            var hotelExists = dataHandler.getHotels().get(hotelId) != null;
 
             if (!hotelExists)
             {
@@ -448,7 +451,7 @@ public class Worker implements Runnable
             // Create and add room
             var room = new Room(roomNumber, price, roomType, hotelId);
 
-            dataHandler.getRooms().add(new Room(roomNumber, price, roomType, hotelId));
+            dataHandler.getRooms().put(room.getId(), room);
 
             return "200 ✅ Room added successfully - ID: " + room.getId();
         }
@@ -479,7 +482,7 @@ public class Worker implements Runnable
             // Create and add hotel
             var hotel = new Hotel(hotelName);
 
-            dataHandler.getHotels().add(hotel);
+            dataHandler.getHotels().put(hotel.getId(), hotel);
 
             return "200 ✅ Hotel added successfully - ID: " + hotel.getId() + " - Name: " + hotel.getName();
         }
@@ -608,8 +611,7 @@ public class Worker implements Runnable
             }
 
             // Validate hotel exists
-            var hotelExists = dataHandler.getHotels().stream()
-                    .anyMatch(hotel -> hotel.getId() == hotelId);
+            var hotelExists = dataHandler.getHotels().get(hotelId) != null;
 
             if (!hotelExists)
             {
@@ -687,26 +689,17 @@ public class Worker implements Runnable
     // Utility methods for finding model objects
     private User findUser(String username)
     {
-        return dataHandler.getUsers().stream()
-                .filter(user -> user.getUsername().equals(username))
-                .findFirst()
-                .orElse(null);
+        return dataHandler.getUsers().get(username);
     }
 
     private Room findRoomById(int roomId)
     {
-        return dataHandler.getRooms().stream()
-                .filter(room -> room.getId() == roomId)
-                .findFirst()
-                .orElse(null);
+        return dataHandler.getRooms().get(roomId);
     }
 
     private Hotel findHotelById(int hotelId)
     {
-        return dataHandler.getHotels().stream()
-                .filter(hotel -> hotel.getId() == hotelId)
-                .findFirst()
-                .orElse(null);
+        return dataHandler.getHotels().get(hotelId);
     }
 
     // Transaction ID generator
@@ -726,29 +719,18 @@ public class Worker implements Runnable
         try
         {
             var bookingId = Integer.parseInt(bookingIdStr);
-
-            var removed = false;
-
-            for (var i = 0; i < dataHandler.getBookings().size(); i++)
+            
+            for (var booking : dataHandler.getBookings())
             {
-                if (dataHandler.getBookings().get(i).getId() == bookingId)
+                if (booking.getId() == bookingId)
                 {
-                    dataHandler.getBookings().remove(i);
+                    dataHandler.getBookings().remove(booking);
 
-                    removed = true;
-
-                    break;
+                    return "200 ✅ Booking removed successfully";
                 }
             }
 
-            if (removed)
-            {
-                return "200 ✅ Booking removed successfully";
-            }
-            else
-            {
-                return "404 ❌ Booking not found";
-            }
+            return "404 ❌ Booking not found";
         }
         catch (Exception e)
         {
@@ -782,7 +764,7 @@ public class Worker implements Runnable
                 return "400 ❌ Cannot remove user with future bookings";
             }
 
-            dataHandler.getUsers().remove(targetUser);
+            dataHandler.getUsers().remove(targetUser.getUsername());
 
             return "200 ✅ User removed successfully";
         }
@@ -808,28 +790,16 @@ public class Worker implements Runnable
                 return "400 ❌ Cannot remove room with future bookings";
             }
 
-            var removed = false;
-
-            for (var i = 0; i < dataHandler.getRooms().size(); i++)
-            {
-                if (dataHandler.getRooms().get(i).getId() == roomId)
-                {
-                    dataHandler.getRooms().remove(i);
-
-                    removed = true;
-
-                    break;
-                }
-            }
-
-            if (removed)
-            {
-                return "200 ✅ Room removed successfully";
-            }
-            else
+            if(dataHandler.getRooms().get(roomId) == null)
             {
                 return "404 ❌ Room not found";
             }
+
+            dataHandler.getRooms().remove(roomId);
+
+
+            return "200 ✅ Room removed successfully";
+        
         }
         catch (Exception e)
         {
@@ -844,36 +814,24 @@ public class Worker implements Runnable
             var hotelId = Integer.parseInt(hotelIdStr);
 
             // Check if there are any rooms in this hotel
-            var hasRooms = dataHandler.getRooms().stream()
-                    .anyMatch(room -> room.getHotel() == hotelId);
-
-            if (hasRooms)
+            for (var room : dataHandler.getRooms().values())
             {
-                return "400 ❌ Cannot remove hotel with existing rooms";
-            }
-
-            var removed = false;
-
-            for (var i = 0; i < dataHandler.getHotels().size(); i++)
-            {
-                if (dataHandler.getHotels().get(i).getId() == hotelId)
+                if (room.getHotel() == hotelId)
                 {
-                    dataHandler.getHotels().remove(i);
-
-                    removed = true;
-
-                    break;
+                    return "400 ❌ Cannot remove hotel with existing rooms";
                 }
             }
 
-            if (removed)
-            {
-                return "200 ✅ Hotel removed successfully";
-            }
-            else
+
+            if(dataHandler.getHotels().get(hotelId) == null)
             {
                 return "404 ❌ Hotel not found";
             }
+
+            dataHandler.getHotels().remove(hotelId);
+
+            return "200 ✅ Hotel removed successfully";
+ 
         }
         catch (Exception e)
         {
@@ -893,7 +851,7 @@ public class Worker implements Runnable
 
         var response = new StringBuilder("200 🏨 Rooms:\n");
 
-        for (var room : rooms)
+        for (var room : rooms.values())
         {
             response.append("  Room ID: ").append(room.getId())
                     .append(" - Number: ").append(room.getRoomNumber())
@@ -901,7 +859,7 @@ public class Worker implements Runnable
                     .append(" - Price: $").append(room.getPrice());
 
             // Add hotel name
-            for (var hotel : dataHandler.getHotels())
+            for (var hotel : dataHandler.getHotels().values())
             {
                 if (hotel.getId() == room.getHotel())
                 {
@@ -928,7 +886,7 @@ public class Worker implements Runnable
 
         var response = new StringBuilder("200 🏨 Hotels:\n");
 
-        for (var hotel : hotels)
+        for (var hotel : hotels.values())
         {
             response.append("  Hotel ID: ").append(hotel.getId())
                     .append(" - Name: ").append(hotel.getName())
@@ -949,7 +907,7 @@ public class Worker implements Runnable
 
         var response = new StringBuilder("200 👤 Users:\n");
 
-        for (var user : users)
+        for (var user : users.values())
         {
             response.append("  User ID: ").append(user.getId())
                     .append(" - Username: ").append(user.getUsername())
@@ -984,32 +942,20 @@ public class Worker implements Runnable
             String roomType = "UNKNOWN", roomNumber = "UNKNOWN", hotelName = "UNKNOWN";
             int roomId = -1;
 
-            for (var room : dataHandler.getRooms())
-            {
-                if (room.getId() == booking.getRoomId())
-                {
-                    roomType = room.getType().toString();
+            var room = dataHandler.getRooms().get(booking.getRoomId());
 
-                    roomNumber = room.getRoomNumber();
+            var hotel = dataHandler.getHotels().get(room.getHotel());
+            
+            roomType = room.getType().toString();
 
-                    roomId = room.getId();
+            roomNumber = room.getRoomNumber();
 
-                    for (var hotel : dataHandler.getHotels())
-                    {
-                        if (hotel.getId() == room.getHotel())
-                        {
-                            hotelName = hotel.getName();
+            roomId = room.getId();
 
-                            break;
-                        }
-                    }
-
-                    break;
-                }
-            }
+            hotelName = hotel.getName();
 
             User bookingUser = null;
-            for(User u: dataHandler.getUsers())
+            for(User u: dataHandler.getUsers().values())
             {
                 if(u.getId() == booking.getUserId())
                 {

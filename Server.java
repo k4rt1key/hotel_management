@@ -2,7 +2,6 @@ package src;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import src.Controller.DataHandler;
@@ -10,7 +9,7 @@ import src.Controller.DataHandler;
 public class Server
 {
     // Using a constant PORT as this is not expected to change
-    private static final int PORT = 8080;
+    private static final int PORT = 8081;
 
     private static ServerSocket server;
 
@@ -19,6 +18,24 @@ public class Server
     private static Server instance;
 
     private static boolean running = true;
+
+    public static void main(String[] args)
+    {
+        try
+        {
+            // Initialize data handler with default data
+            DataHandler.getDataHandler();
+            System.out.println("Data initialized with default values");
+
+            // Start server
+            Server.getInstance().start();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
 
     public static Server getInstance() throws IOException
     {
@@ -66,7 +83,7 @@ public class Server
 
                 // Start client handler
                 System.out.println("Client connected with address " + client.getInetAddress());
-
+                
                 threadPool.execute(new Worker(client));
             }
         }
@@ -104,20 +121,4 @@ public class Server
         }
     }
 
-    public static void main(String[] args)
-    {
-        try
-        {
-            // Initialize data handler with default data
-            DataHandler.getDataHandler();
-            System.out.println("Data initialized with default values");
-
-            // Start server
-            Server.getInstance().start();
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
 }
