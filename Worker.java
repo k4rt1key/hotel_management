@@ -979,17 +979,16 @@ public class Worker implements Runnable
                 }
             }
 
-              response.append("  Booking #").append(booking.getId())
-                    .append(" - Room: ").append(roomNumber)
-                    .append(" With RoomId ").append(roomId)
-                    .append(" - Username: ").append(bookingUser.getUsername())
-                      .append(" With UserId: ").append(bookingUser.getId())
-                    .append(" (").append(roomType).append(")")
-                    .append(" - Hotel: ").append(hotelName)
-                    .append(" - Check-in: ").append(booking.getCheckInTime().format(displayFormatter))
-                    .append(" - Check-out: ").append(booking.getCheckOutTime().format(displayFormatter))
-                    .append("\n");
-        }
+            response
+                .append("  Booking #").append(booking.getId()).append("\n")
+                .append("    - Room: ").append(roomNumber).append(" (RoomId: ").append(roomId).append(")\n")
+                .append("    - User: ").append(bookingUser.getUsername()).append(" (UserId: ").append(bookingUser.getId()).append(")\n")
+                .append("    - Room Type: ").append(roomType).append("\n")
+                .append("    - Hotel: ").append(hotelName).append("\n")
+                .append("    - Check-in: ").append(booking.getCheckInTime().format(displayFormatter)).append("\n")
+                .append("    - Check-out: ").append(booking.getCheckOutTime().format(displayFormatter)).append("\n");
+        }    
+
 
         response.append("\n");
 
