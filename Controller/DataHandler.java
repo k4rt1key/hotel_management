@@ -20,7 +20,6 @@ public class DataHandler
     private final HashMap<Integer, Room> rooms;
 
     private final CopyOnWriteArrayList<Booking> bookings;
-    
 
     private DataHandler()
     {
@@ -188,17 +187,4 @@ public class DataHandler
         return bookings;
     }
 
-    public List<Booking> getBookings(User user)
-    {
-        if (!user.isAdmin())
-        {
-            return bookings.stream().filter((b) ->
-            {
-                return b.getUserId() == user.getId();
-
-            }).collect(Collectors.toList());
-        }
-
-        return bookings;
-    }
 }

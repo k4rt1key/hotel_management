@@ -158,7 +158,11 @@ public class Tester
 
             in.close();
 
-            return response.toString().trim();
+            String res = response.toString().trim();
+
+            response.setLength(0);
+
+            return res;
         }
     }
 }
