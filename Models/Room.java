@@ -1,9 +1,10 @@
-package src.Model;
+package src.Models;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Room
 {
+    // TODO : no enum should be there in POJO.
     public enum RoomType
     {
         SINGLE_ROOM,
@@ -15,7 +16,7 @@ public class Room
         SUITE
     }
 
-    private static int roomCounter = 0;
+    private static int roomCounter = 0; // TODO : worst way to initialize unuiqe id
 
     private final int id;
 

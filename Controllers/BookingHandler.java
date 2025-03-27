@@ -1,8 +1,9 @@
-package src.Controller;
+package src.Controllers;
 
-import src.Model.Booking;
-import src.Model.Room;
-import src.Model.User;
+import src.Models.Booking;
+import src.Models.Room;
+import src.Models.User;
+import src.Server.Database;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,27 +15,16 @@ import java.util.stream.Collectors;
 
 public class BookingHandler
 {
-    private static BookingHandler instance;
-
-    private static final DataHandler dataHandler = DataHandler.getDataHandler();
+    // private static BookingHandler instance; // TODO: unused variables???
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private static final DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private BookingHandler()
-    {
-        //
-    }
-
-    //  ==== CRUD ====
-
-    // == CREATE ==
     public static String handleBooking(String[] parts)
     {
         try
         {
-            // Find date and credential positions
             var lastIndex = parts.length - 1;
 
             var password = parts[lastIndex];
@@ -48,7 +38,7 @@ public class BookingHandler
             // Validate user
             var user = UserHandler.findUser(username);
 
-            if (user == null || !user.validatePassword(password))
+            if (user == null || user.validatePassword(password))
             {
                 return "403 ❌ Invalid credentials";
             }
@@ -63,6 +53,7 @@ public class BookingHandler
 
             var bookings = new ArrayList<Booking>();
 
+            // TODO: can we reduce this for loop to 1 for loop
 
             for (var i = 1; i < parts.length - 4; i++)
             {
@@ -71,6 +62,7 @@ public class BookingHandler
                 // Verify room exists
                 var room = RoomHandler.findRoomById(roomId);
 
+                // THREAD-2: 1 sec
                 if(!room.getLock().tryLock(1000, TimeUnit.MILLISECONDS))
                 {
                     anyFail = true;
@@ -91,7 +83,8 @@ public class BookingHandler
                     // Verify room exists
                     var room = RoomHandler.findRoomById(roomId);
 
-                    if (room == null) {
+                    if (room == null)
+                    {
                         rollBackBookings(bookings);
 
                         bookingResults.append("  Room ID ").append(roomId).append(": Room not found\n");
@@ -102,7 +95,8 @@ public class BookingHandler
                     // Book the room
                     var bookingId = bookRoomWithTransaction(roomId, user.getId(), checkInTime, checkOutTime, transactionId);
 
-                    if (bookingId == -1) {
+                    if (bookingId == -1)
+                    {
                         anyFail = true;
 
                         rollBackBookings(bookings);
@@ -110,7 +104,9 @@ public class BookingHandler
                         bookingResults.append("  Room ").append(room.getRoomNumber()).append(": Not available for selected dates\n");
 
                         break;
-                    } else {
+                    }
+                    else
+                    {
                         bookingResults.append("  Room ").append(room.getRoomNumber())
                                 .append(": Successfully booked (Booking ID: ").append(bookingId).append(")\n");
                     }
@@ -153,12 +149,13 @@ public class BookingHandler
     // == READ ==
     public static String listBookings(User usr)
     {
-        var bookings = getBookings(usr);
-
         if (usr == null)
         {
             return "404 📅 No USER found";
         }
+
+        // TODO : first null check then pass to function
+        var bookings = getBookings(usr);
 
         if (bookings.isEmpty())
         {
@@ -168,17 +165,17 @@ public class BookingHandler
         var response = new StringBuilder("200 📅 All Bookings:\n");
 
 
-        for (Booking booking : bookings)
+        for (var booking : bookings)
         {
             response.append("Transaction #").append(booking.getTransactionId())
                     .append("\n");
 
-            String roomType = "UNKNOWN", roomNumber = "UNKNOWN", hotelName = "UNKNOWN";
-            int roomId = -1;
+            String roomType, roomNumber, hotelName;
+            int roomId;
 
-            var room = dataHandler.getRooms().get(booking.getRoomId());
+            var room = Database.rooms.get(booking.getRoomId());
 
-            var hotel = dataHandler.getHotels().get(room.getHotel());
+            var hotel = Database.hotels.get(room.getHotel());
 
             roomType = room.getType().toString();
 
@@ -189,15 +186,19 @@ public class BookingHandler
             hotelName = hotel.getName();
 
             User bookingUser = null;
-            for(User u: dataHandler.getUsers().values())
+
+            for(var u: Database.users.values())
             {
-                if(u.getId() == booking.getUserId())
+                if(u.getId() == booking.getUserId()) // TODO: why to search every users?
                 {
                     bookingUser = u;
                     break;
                 }
             }
 
+            // TODO: what if booking user is null?
+
+            assert bookingUser != null;
             response
                     .append("  Booking #").append(booking.getId()).append("\n")
                     .append("    - Room: ").append(roomNumber).append(" (RoomId: ").append(roomId).append(")\n")
@@ -222,14 +223,11 @@ public class BookingHandler
     {
         if (!user.isAdmin())
         {
-            return dataHandler.getBookings().stream().filter((b) ->
-            {
-                return b.getUserId() == user.getId();
-
-            }).collect(Collectors.toList());
+            return Database.bookings.stream().filter((b) ->
+                    b.getUserId() == user.getId()).collect(Collectors.toList());
         }
 
-        return dataHandler.getBookings();
+        return Database.bookings;
     }
 
     public static String handleCheck(String[] parts)
@@ -248,7 +246,7 @@ public class BookingHandler
             // Validate user
             var user = UserHandler.findUser(username);
 
-            if (user == null || !user.validatePassword(password))
+            if (user == null || user.validatePassword(password))
             {
                 return "403 ❌ Invalid credentials";
             }
@@ -256,7 +254,7 @@ public class BookingHandler
             // Find all available rooms
             var availableRooms = new ArrayList<Room>();
 
-            for (var room : dataHandler.getRooms().values())
+            for (var room : Database.rooms.values())
             {
                 if (isRoomAvailable(room.getId(), checkInTime, checkOutTime))
                 {
@@ -275,7 +273,7 @@ public class BookingHandler
             {
                 var hotelName = "Unknown";
 
-                for (var hotel : dataHandler.getHotels().values())
+                for (var hotel : Database.hotels.values())
                 {
                     if (hotel.getId() == room.getHotel())
                     {
@@ -316,11 +314,11 @@ public class BookingHandler
         {
             var bookingId = Integer.parseInt(bookingIdStr);
 
-            for (var booking : dataHandler.getBookings())
+            for (var booking : Database.bookings)
             {
                 if (booking.getId() == bookingId)
                 {
-                    dataHandler.getBookings().remove(booking);
+                    Database.bookings.remove(booking);
 
                     return "200 ✅ Booking removed successfully";
                 }
@@ -338,7 +336,7 @@ public class BookingHandler
 
     public static boolean isRoomAvailable(int roomId, LocalDateTime checkInTime, LocalDateTime checkOutTime)
     {
-        for (Booking booking : dataHandler.getBookings())
+        for (Booking booking : Database.bookings)
         {
             if (booking.getRoomId() == roomId)
             {
@@ -366,7 +364,7 @@ public class BookingHandler
 
         var booking = new Booking(roomId, userId, checkInTime, checkOutTime, transactionId);
 
-        dataHandler.getBookings().add(booking);
+        Database.bookings.add(booking);
 
         return booking.getId();
     }
@@ -375,16 +373,16 @@ public class BookingHandler
     {
         for (Booking booking : bookings)
         {
-            dataHandler.getBookings().remove(booking);
+            Database.bookings.remove(booking);
         }
     }
 
     private static int generateTransactionId()
     {
-        var maxTransactionId = dataHandler.getBookings().stream()
+        var maxTransactionId = Database.bookings.stream()
                 .mapToInt(Booking::getTransactionId)
                 .max()
-                .orElse(0);
+                .orElse(0); // TODO: Why can't we maintina a static incremental variable??
 
         return maxTransactionId + 1;
     }

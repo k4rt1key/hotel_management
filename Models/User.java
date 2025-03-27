@@ -1,4 +1,4 @@
-package src.Model;
+package src.Models;
 
 public class User
 {
@@ -10,7 +10,7 @@ public class User
 
     private String password;
 
-    private boolean isAdmin;
+    private final boolean isAdmin;
 
     public User(String username, String password, boolean isAdmin)
     {
@@ -41,7 +41,7 @@ public class User
 
     public boolean validatePassword(String inputPassword)
     {
-        return password.equals(inputPassword);
+        return !password.equals(inputPassword);
     }
 
     public void setPassword(String newPassword)

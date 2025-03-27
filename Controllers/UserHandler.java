@@ -1,12 +1,12 @@
-package src.Controller;
+package src.Controllers;
 
-import src.Model.User;
+import src.Models.User;
+import src.Server.Database;
 
 import java.time.LocalDateTime;
 
 public class UserHandler
 {
-    private static DataHandler dataHandler = DataHandler.getDataHandler();
 
     // ==== CRUD ====
 
@@ -22,7 +22,7 @@ public class UserHandler
 
         var newUser = new User(username, password, false);
 
-        dataHandler.getUsers().put(newUser.getUsername(), newUser);
+        Database.users.put(newUser.getUsername(), newUser);
 
         return "200 ✅ User created successfully: " + username + " (ID: " + newUser.getId() + ")";
     }
@@ -30,14 +30,14 @@ public class UserHandler
     // == READ ==
     public static String handleLogin(String username, String password)
     {
-        User user = dataHandler.getUsers().get(username);
+        User user = Database.users.get(username);
 
         if (user == null)
         {
             return "404 ❌ User not found";
         }
 
-        if (!user.validatePassword(password))
+        if (user.validatePassword(password))
         {
             return "403 ❌ Invalid password";
         }
@@ -47,7 +47,7 @@ public class UserHandler
 
     public static String listUsers()
     {
-        var users = dataHandler.getUsers();
+        var users = Database.users;
 
         if (users.isEmpty())
         {
@@ -89,7 +89,7 @@ public class UserHandler
             }
 
             // Check for future bookings
-            var hasFutureBookings = dataHandler.getBookings().stream()
+            var hasFutureBookings = Database.bookings.stream()
                     .anyMatch(booking -> booking.getUserId() == targetUser.getId()
                             && booking.getCheckOutTime().isAfter(LocalDateTime.now()));
 
@@ -98,7 +98,7 @@ public class UserHandler
                 return "400 ❌ Cannot remove user with future bookings";
             }
 
-            dataHandler.getUsers().remove(targetUser.getUsername());
+            Database.users.remove(targetUser.getUsername());
 
             return "200 ✅ User removed successfully";
         }
@@ -111,7 +111,7 @@ public class UserHandler
     // ==== HELPER METHODS ====
     public static User findUser(String username)
     {
-        return dataHandler.getUsers().get(username);
+        return Database.users.get(username);
     }
 
 

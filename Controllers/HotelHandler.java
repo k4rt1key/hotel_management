@@ -1,14 +1,14 @@
-package src.Controller;
+package src.Controllers;
 
-import src.Model.Hotel;
+import src.Models.Hotel;
+import src.Server.Database;
 
-public class HostelHandler
+public class HotelHandler
 {
-    private static DataHandler dataHandler = DataHandler.getDataHandler();
 
     public static Hotel findHotelById(int hotelId)
     {
-        return dataHandler.getHotels().get(hotelId);
+        return Database.hotels.get(hotelId);
     }
 
     public static String handleCreateHotel(String[] parts)
@@ -24,7 +24,7 @@ public class HostelHandler
             // Validate admin
             var admin = UserHandler.findUser(adminUsername);
 
-            if (admin == null || !admin.isAdmin() || !admin.validatePassword(adminPassword))
+            if (admin == null || !admin.isAdmin() || admin.validatePassword(adminPassword))
             {
                 return "403 ❌ Unauthorized access";
             }
@@ -32,7 +32,7 @@ public class HostelHandler
             // Create and add hotel
             var hotel = new Hotel(hotelName);
 
-            dataHandler.getHotels().put(hotel.getId(), hotel);
+            Database.hotels.put(hotel.getId(), hotel);
 
             return "200 ✅ Hotel added successfully - ID: " + hotel.getId() + " - Name: " + hotel.getName();
         }
@@ -44,7 +44,7 @@ public class HostelHandler
 
     public static String listHotels()
     {
-        var hotels = dataHandler.getHotels();
+        var hotels = Database.hotels;
 
         if (hotels.isEmpty())
         {
@@ -59,7 +59,7 @@ public class HostelHandler
                     .append(" - Name: ").append(hotel.getName())
                     .append("\n");
 
-            for (var room : dataHandler.getRooms().values())
+            for (var room : Database.rooms.values())
             {
                 if (room.getHotel() == hotel.getId())
                 {
@@ -95,7 +95,7 @@ public class HostelHandler
             // Validate admin
             var admin = UserHandler.findUser(adminUsername);
 
-            if (admin == null || !admin.isAdmin() || !admin.validatePassword(adminPassword))
+            if (admin == null || !admin.isAdmin() || admin.validatePassword(adminPassword))
             {
                 return "403 ❌ Unauthorized access";
             }
@@ -126,7 +126,7 @@ public class HostelHandler
             var hotelId = Integer.parseInt(hotelIdStr);
 
             // Check if there are any rooms in this hotel
-            for (var room : dataHandler.getRooms().values())
+            for (var room : Database.rooms.values())
             {
                 if (room.getHotel() == hotelId)
                 {
@@ -135,12 +135,12 @@ public class HostelHandler
             }
 
 
-            if(dataHandler.getHotels().get(hotelId) == null)
+            if(Database.hotels.get(hotelId) == null)
             {
                 return "404 ❌ Hotel not found";
             }
 
-            dataHandler.getHotels().remove(hotelId);
+            Database.hotels.remove(hotelId);
 
             return "200 ✅ Hotel removed successfully";
 

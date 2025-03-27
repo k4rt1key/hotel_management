@@ -1,8 +1,8 @@
-package src.Model;
+package src.Models;
 
 public class Hotel
 {
-    private static int hotelCounter = 0;
+    private static int hotelCounter = 0; // TODO : Why static variable in POJO??
 
     private final int id;
 
@@ -10,7 +10,7 @@ public class Hotel
 
     public Hotel(String name)
     {
-        this.id = ++hotelCounter;
+        this.id = ++hotelCounter; // TODO : what about thread safety?
 
         this.name = name;
     }

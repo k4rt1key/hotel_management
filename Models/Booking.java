@@ -1,5 +1,5 @@
 // src/Model/Booking.java
-package src.Model;
+package src.Models;
 
 import java.time.LocalDateTime;
 
@@ -83,3 +83,4 @@ public class Booking
         return bookedTime;
     }
 }
+

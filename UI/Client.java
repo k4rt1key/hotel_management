@@ -1,4 +1,4 @@
-package src;
+package src.UI;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,8 +8,6 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
 import src.Util.Validator;
@@ -32,13 +30,15 @@ public class Client
 
     private static final DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
-    // Define valid room types for validation
-    private static final List<String> VALID_ROOM_TYPES = Arrays.asList(
-            "SINGLE_ROOM", "DOUBLE_ROOM", "DELUX_ROOM", "SUITE");
-
-    Client()
+    public Client()
     {
         this.sc = new Scanner(System.in);
+    }
+
+    // TODO: why logic in constructor??
+    private void start()
+    {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::cleanupResources));
 
         displayWelcome();
 
@@ -59,11 +59,17 @@ public class Client
 
             String input = sc.nextLine().trim();
 
-            if (input.equalsIgnoreCase("3"))
+            /*
+            TODO : not proper use of shutdown hook and cleaning resources
+            */
+
+            if (input.equalsIgnoreCase("EXIT"))
             {
                 System.out.println("Exiting application. Goodbye!");
 
-                return;
+                cleanupResources();
+
+                System.exit(0);
             }
 
             if (input.toUpperCase().startsWith("LOGIN "))
@@ -96,26 +102,22 @@ public class Client
             showUserInterface();
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() ->
-        {
-            System.out.println("Worker shutdown hook triggered");
-
-            cleanupWorkerResources();
-
-            System.out.println("Worker shutdown complete.");
-        }));
     }
 
-    private void cleanupWorkerResources()
+    private void cleanupResources()
     {
         // Cleanup specific to this Worker instance
         try
         {
+            System.out.println("Worker shutdown hook triggered...");
+
             sc.close();
+
+            System.out.println("Worker shutdown complete.");
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            System.out.println("Client error = " + e.getMessage());
         }
     }
 
@@ -457,7 +459,7 @@ public class Client
                 }
             }
 
-            System.out.println(response.toString());
+            System.out.println(response); // TODO : why to string explixit call?
         }
         catch (IOException e)
         {
@@ -511,6 +513,6 @@ public class Client
 
     public static void main(String[] args)
     {
-        var client = new Client();
+        new Client().start(); // TODO : unused variable??
     }
 }

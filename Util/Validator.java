@@ -50,22 +50,21 @@ public class Validator
 
                 var createType = parts[1].toUpperCase();
 
-                switch (createType)
+                return switch (createType)
                 {
-                    case "USER":
-                        return validateCreateUserCommand(command);
+                    case "USER" -> validateCreateUserCommand(command);
 
-                    case "HOTEL":
-                        return validateCreateHotelCommand(parts);
+                    case "HOTEL" -> validateCreateHotelCommand(parts);
 
-                    case "ROOM":
-                        return validateCreateRoomCommand(parts);
+                    case "ROOM" -> validateCreateRoomCommand(parts);
 
-                    default:
+                    default ->
+                    {
                         System.out.println("Error: Unknown CREATE type");
 
-                        return false;
-                }
+                        yield false;
+                    }
+                };
 
             case "REMOVE":
                 if (parts.length < 2)
@@ -77,25 +76,23 @@ public class Validator
 
                 var removeType = parts[1].toUpperCase();
 
-                switch (removeType)
+                return switch (removeType)
                 {
-                    case "USER":
-                        return validateRemoveUserCommand(parts);
+                    case "USER" -> validateRemoveUserCommand(parts);
 
-                    case "BOOKING":
-                        return validateRemoveBookingCommand(parts);
+                    case "BOOKING" -> validateRemoveBookingCommand(parts);
 
-                    case "ROOM":
-                        return validateRemoveRoomCommand(parts);
+                    case "ROOM" -> validateRemoveRoomCommand(parts);
 
-                    case "HOTEL":
-                        return validateRemoveHotelCommand(parts);
+                    case "HOTEL" -> validateRemoveHotelCommand(parts);
 
-                    default:
+                    default ->
+                    {
                         System.out.println("Error: Unknown REMOVE type");
 
-                        return false;
-                }
+                        yield false;
+                    }
+                };
 
             case "LIST":
                 if (parts.length < 2)
@@ -107,25 +104,23 @@ public class Validator
 
                 var listType = parts[1].toUpperCase();
 
-                switch (listType)
+                return switch (listType)
                 {
-                    case "ROOMS":
-                        return validateListCommand(parts, "ROOMS");
+                    case "ROOMS" -> validateListCommand(parts, "ROOMS");
 
-                    case "HOTELS":
-                        return validateListCommand(parts, "HOTELS");
+                    case "HOTELS" -> validateListCommand(parts, "HOTELS");
 
-                    case "USERS":
-                        return validateListCommand(parts, "USERS");
+                    case "USERS" -> validateListCommand(parts, "USERS");
 
-                    case "BOOKINGS":
-                        return validateListCommand(parts, "BOOKINGS");
+                    case "BOOKINGS" -> validateListCommand(parts, "BOOKINGS");
 
-                    default:
+                    default ->
+                    {
                         System.out.println("Error: Unknown LIST type");
 
-                        return false;
-                }
+                        yield false;
+                    }
+                };
 
             case "UPDATE":
                 if (parts.length < 2)
@@ -137,19 +132,19 @@ public class Validator
 
                 var updateType = parts[1].toUpperCase();
 
-                switch (updateType)
+                return switch (updateType)
                 {
-                    case "ROOM":
-                        return validateUpdateRoomCommand(parts);
+                    case "ROOM" -> validateUpdateRoomCommand(parts);
 
-                    case "HOTEL":
-                        return validateUpdateHotelCommand(parts);
+                    case "HOTEL" -> validateUpdateHotelCommand(parts);
 
-                    default:
+                    default ->
+                    {
                         System.out.println("Error: Unknown UPDATE type");
 
-                        return false;
-                }
+                        yield false;
+                    }
+                };
 
             default:
                 System.out.println("Error: Unknown command");
@@ -169,12 +164,7 @@ public class Validator
             return false;
         }
 
-        if (!Validator.checkNull(parts[1], "Username") || !Validator.checkNull(parts[2], "Password"))
-        {
-            return false;
-        }
-
-        return true;
+        return Validator.checkNull(parts[1], "Username") && Validator.checkNull(parts[2], "Password");
     }
 
     public static boolean validateCreateUserCommand(String command)
@@ -195,12 +185,7 @@ public class Validator
             return false;
         }
 
-        if (!checkNull(parts[2], "Username") || !checkNull(parts[3], "Password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[2], "Username") && checkNull(parts[3], "Password");
     }
 
     private static boolean validateCheckCommand(String[] parts)
@@ -212,22 +197,17 @@ public class Validator
             return false;
         }
 
-        if (!checkDate(parts[1], "Check-in time") || !checkDate(parts[2], "Check-out time"))
+        if (checkDate(parts[1], "Check-in time") || checkDate(parts[2], "Check-out time"))
         {
             return false;
         }
 
-        if (!checkInOutTime(parts[1], parts[2]))
+        if (checkInOutTime(parts[1], parts[2]))
         {
             return false;
         }
 
-        if (!checkNull(parts[3], "Username") || !checkNull(parts[4], "Password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[3], "Username") && checkNull(parts[4], "Password");
     }
 
     private static boolean validateBookCommand(String[] parts)
@@ -241,7 +221,7 @@ public class Validator
         }
 
         // Check if there's at least one room ID
-        if (!checkInt(parts[1], "Room ID"))
+        if (checkInt(parts[1], "Room ID"))
         {
             return false;
         }
@@ -257,12 +237,12 @@ public class Validator
 
         var checkInTime = parts[lastIndex - 3];
 
-        if (!checkDate(checkInTime, "Check-in time") || !checkDate(checkOutTime, "Check-out time"))
+        if (checkDate(checkInTime, "Check-in time") || checkDate(checkOutTime, "Check-out time"))
         {
             return false;
         }
 
-        if (!checkInOutTime(checkInTime, checkOutTime))
+        if (checkInOutTime(checkInTime, checkOutTime))
         {
             return false;
         }
@@ -275,7 +255,7 @@ public class Validator
         // Check if all room IDs are valid integers
         for (int i = 1; i < parts.length - 4; i++)
         {
-            if (!checkInt(parts[i], "Room ID"))
+            if (checkInt(parts[i], "Room ID"))
             {
                 return false;
             }
@@ -299,12 +279,7 @@ public class Validator
             return false;
         }
 
-        if (!checkNull(parts[3], "Admin username") || !checkNull(parts[4], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[3], "Admin username") && checkNull(parts[4], "Admin password");
     }
 
     private static boolean validateCreateRoomCommand(String[] parts)
@@ -317,7 +292,7 @@ public class Validator
             return false;
         }
 
-        if (!checkInt(parts[2], "Hotel ID"))
+        if (checkInt(parts[2], "Hotel ID"))
         {
             return false;
         }
@@ -327,22 +302,17 @@ public class Validator
             return false;
         }
 
-        if (!checkRoomType(parts[4]))
+        if (checkRoomType(parts[4]))
         {
             return false;
         }
 
-        if (!checkInt(parts[5], "Price"))
+        if (checkInt(parts[5], "Price"))
         {
             return false;
         }
 
-        if (!checkNull(parts[6], "Admin username") || !checkNull(parts[7], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[6], "Admin username") && checkNull(parts[7], "Admin password");
     }
 
     private static boolean validateRemoveUserCommand(String[] parts)
@@ -360,12 +330,7 @@ public class Validator
             return false;
         }
 
-        if (!checkNull(parts[3], "Admin username") || !checkNull(parts[4], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[3], "Admin username") && checkNull(parts[4], "Admin password");
     }
 
     private static boolean validateRemoveBookingCommand(String[] parts)
@@ -378,17 +343,12 @@ public class Validator
             return false;
         }
 
-        if (!checkInt(parts[2], "Booking ID"))
+        if (checkInt(parts[2], "Booking ID"))
         {
             return false;
         }
 
-        if (!checkNull(parts[3], "Admin username") || !checkNull(parts[4], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[3], "Admin username") && checkNull(parts[4], "Admin password");
     }
 
     private static boolean validateRemoveRoomCommand(String[] parts)
@@ -401,17 +361,12 @@ public class Validator
             return false;
         }
 
-        if (!checkInt(parts[2], "Room ID"))
+        if (checkInt(parts[2], "Room ID"))
         {
             return false;
         }
 
-        if (!checkNull(parts[3], "Admin username") || !checkNull(parts[4], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[3], "Admin username") && checkNull(parts[4], "Admin password");
     }
 
     private static boolean validateRemoveHotelCommand(String[] parts)
@@ -424,17 +379,12 @@ public class Validator
             return false;
         }
 
-        if (!checkInt(parts[2], "Hotel ID"))
+        if (checkInt(parts[2], "Hotel ID"))
         {
             return false;
         }
 
-        if (!checkNull(parts[3], "Admin username") || !checkNull(parts[4], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[3], "Admin username") && checkNull(parts[4], "Admin password");
     }
 
     private static boolean validateListCommand(String[] parts, String listType)
@@ -447,12 +397,7 @@ public class Validator
             return false;
         }
 
-        if (!checkNull(parts[2], "Admin username") || !checkNull(parts[3], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[2], "Admin username") && checkNull(parts[3], "Admin password");
     }
 
     private static boolean validateUpdateRoomCommand(String[] parts)
@@ -465,12 +410,12 @@ public class Validator
             return false;
         }
 
-        if (!checkInt(parts[2], "Room ID"))
+        if (checkInt(parts[2], "Room ID"))
         {
             return false;
         }
 
-        if (!checkInt(parts[3], "Hotel ID"))
+        if (checkInt(parts[3], "Hotel ID"))
         {
             return false;
         }
@@ -480,22 +425,17 @@ public class Validator
             return false;
         }
 
-        if (!checkRoomType(parts[5]))
+        if (checkRoomType(parts[5]))
         {
             return false;
         }
 
-        if (!checkInt(parts[6], "Price"))
+        if (checkInt(parts[6], "Price"))
         {
             return false;
         }
 
-        if (!checkNull(parts[7], "Admin username") || !checkNull(parts[8], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[7], "Admin username") && checkNull(parts[8], "Admin password");
     }
 
     private static boolean validateUpdateHotelCommand(String[] parts)
@@ -508,7 +448,7 @@ public class Validator
             return false;
         }
 
-        if (!checkInt(parts[2], "Hotel ID"))
+        if (checkInt(parts[2], "Hotel ID"))
         {
             return false;
         }
@@ -518,12 +458,7 @@ public class Validator
             return false;
         }
 
-        if (!checkNull(parts[4], "Admin username") || !checkNull(parts[5], "Admin password"))
-        {
-            return false;
-        }
-
-        return true;
+        return checkNull(parts[4], "Admin username") && checkNull(parts[5], "Admin password");
     }
 
     // ================= Validation helper methods =====================
@@ -546,13 +481,13 @@ public class Validator
         {
             Integer.parseInt(value);
 
-            return true;
+            return false;
         }
         catch (NumberFormatException e)
         {
             System.out.println("Error: " + fieldName + " must be a valid integer");
 
-            return false;
+            return true;
         }
     }
 
@@ -562,13 +497,13 @@ public class Validator
         {
             LocalDateTime.parse(dateStr, inputDateFormatter);
 
-            return true;
+            return false;
         }
         catch (DateTimeParseException e)
         {
             System.out.println("Error: " + fieldName + " must be in the format yyyy-MM-ddTHH:mm (e.g., 2025-03-19T14:30)");
 
-            return false;
+            return true;
         }
     }
 
@@ -583,7 +518,7 @@ public class Validator
             {
                 System.out.println("Error: Check-out time must be after check-in time");
 
-                return false;
+                return true;
             }
 
             // Check if check-in time is in the future
@@ -591,15 +526,15 @@ public class Validator
             {
                 System.out.println("Error: Check-in time must be in the future");
 
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
         catch (DateTimeParseException e)
         {
             // This should not happen since we already checked the date format
-            return false;
+            return true;
         }
     }
 
@@ -609,9 +544,9 @@ public class Validator
         {
             System.out.println("Error: Invalid room type. Valid types: " + String.join(", ", VALID_ROOM_TYPES));
 
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

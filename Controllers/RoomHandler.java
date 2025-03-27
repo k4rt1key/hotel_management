@@ -1,16 +1,16 @@
-package src.Controller;
+package src.Controllers;
 
-import src.Model.Room;
+import src.Models.Room;
+import src.Server.Database;
 
 import java.time.LocalDateTime;
 
 public class RoomHandler
 {
-    private static DataHandler dataHandler = DataHandler.getDataHandler();
 
     public static Room findRoomById(int roomId)
     {
-        return dataHandler.getRooms().get(roomId);
+        return Database.rooms.get(roomId);
     }
 
     // ==== CRUD ====
@@ -35,13 +35,13 @@ public class RoomHandler
             // Validate admin
             var admin = UserHandler.findUser(adminUsername);
 
-            if (admin == null || !admin.isAdmin() || !admin.validatePassword(adminPassword))
+            if (admin == null || !admin.isAdmin() || admin.validatePassword(adminPassword))
             {
                 return "403 ❌ Unauthorized access";
             }
 
             // Find hotel
-            var hotelExists = dataHandler.getHotels().get(hotelId) != null;
+            var hotelExists = Database.hotels.get(hotelId) != null;
 
             if (!hotelExists)
             {
@@ -63,7 +63,7 @@ public class RoomHandler
             // Create and add room
             var room = new Room(roomNumber, price, roomType, hotelId);
 
-            dataHandler.getRooms().put(room.getId(), room);
+            Database.rooms.put(room.getId(), room);
 
             return "200 ✅ Room added successfully - ID: " + room.getId();
         }
@@ -76,7 +76,7 @@ public class RoomHandler
     // == READ ==
     public static String listRooms()
     {
-        var rooms = dataHandler.getRooms();
+        var rooms = Database.rooms;
 
         if (rooms.isEmpty())
         {
@@ -93,7 +93,7 @@ public class RoomHandler
                     .append(" - Price: $").append(room.getPrice());
 
             // Add hotel name
-            for (var hotel : dataHandler.getHotels().values())
+            for (var hotel : Database.hotels.values())
             {
                 if (hotel.getId() == room.getHotel())
                 {
@@ -135,7 +135,7 @@ public class RoomHandler
             // Validate admin
             var admin = UserHandler.findUser(adminUsername);
 
-            if (admin == null || !admin.isAdmin() || !admin.validatePassword(adminPassword))
+            if (admin == null || !admin.isAdmin() || admin.validatePassword(adminPassword))
             {
                 return "403 ❌ Unauthorized access";
             }
@@ -149,7 +149,7 @@ public class RoomHandler
             }
 
             // Validate hotel exists
-            var hotelExists = dataHandler.getHotels().get(hotelId) != null;
+            var hotelExists = Database.hotels.get(hotelId) != null;
 
             if (!hotelExists)
             {
@@ -193,7 +193,7 @@ public class RoomHandler
             var roomId = Integer.parseInt(roomIdStr);
 
             // Check for future bookings
-            var hasFutureBookings = dataHandler.getBookings().stream()
+            var hasFutureBookings = Database.bookings.stream()
                     .anyMatch(booking -> booking.getRoomId() == roomId
                             && booking.getCheckOutTime().isAfter(LocalDateTime.now()));
 
@@ -202,12 +202,12 @@ public class RoomHandler
                 return "400 ❌ Cannot remove room with future bookings";
             }
 
-            if(dataHandler.getRooms().get(roomId) == null)
+            if(Database.rooms.get(roomId) == null)
             {
                 return "404 ❌ Room not found";
             }
 
-            dataHandler.getRooms().remove(roomId);
+            Database.rooms.remove(roomId);
 
 
             return "200 ✅ Room removed successfully";
